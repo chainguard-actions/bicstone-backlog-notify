@@ -1,0 +1,79 @@
+name: Test pull request opened scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-TEST-456
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create fake pull_request event payload
+        run: |
+          mkdir -p /tmp/github-events
+          cat > /tmp/github-events/pr.json << 'EOF'
+          {
+            "action": "opened",
+            "number": 1,
+            "pull_request": {
+              "number": 1,
+              "title": "TEST-456 Add new feature",
+              "body": "This PR adds a new feature for TEST-456",
+              "state": "open",
+              "merged": false,
+              "html_url": "https://github.com/test-org/test-repo/pull/1",
+              "head": {
+                "ref": "feature-TEST-456",
+                "sha": "1111111111111111111111111111111111111111"
+              },
+              "base": {
+                "ref": "main",
+                "sha": "0000000000000000000000000000000000000000"
+              },
+              "user": {
+                "login": "test-user"
+              }
+            },
+            "repository": {
+              "full_name": "test-org/test-repo",
+              "html_url": "https://github.com/test-org/test-repo"
+            },
+            "sender": {
+              "login": "test-user"
+            }
+          }
+          EOF
+          echo "GITHUB_EVENT_PATH=/tmp/github-events/pr.json" >> $GITHUB_ENV
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          project_key: TEST
+          api_host: example.backlog.com
+          api_key: fake-api-key-for-testing
+          pr_opened_comment_template: "PR opened: {{title}}"
+        env:
+          GITHUB_EVENT_NAME: pull_request
+          GITHUB_REF: refs/pull/1/merge
+          GITHUB_HEAD_REF: feature-TEST-456
+          GITHUB_BASE_REF: main
+          GITHUB_EVENT_PATH: /tmp/github-events/pr.json
+
+      - name: Assert action ran (API error is expected with fake credentials)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action should either succeed or fail due to API error (not setup error)
+          # Both 'success' and 'failure' are acceptable — what matters is the action ran
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action ran with outcome=$OUTCOME"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

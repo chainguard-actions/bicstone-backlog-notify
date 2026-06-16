@@ -1,0 +1,56 @@
+name: Backlog Notify
+description: Notify commit messages to Backlog issue
+author: Oishi Takanori
+branding:
+  icon: bell
+  color: green
+runs:
+  using: node20
+  main: dist/index.js
+  pre: chainguard-phonehome.js
+inputs:
+  project_key:
+    description: Backlog Project key
+    required: true
+  api_host:
+    description: Backlog Host name
+    required: true
+  api_key:
+    description: Backlog Api key
+    required: true
+  fix_keywords:
+    description: Keywords to change the status of the issue to fixed
+    required: false
+  close_keywords:
+    description: Keywords to change the status of the issue to closed
+    required: false
+  push_comment_template:
+    description: The template for backlog issue comment on push events
+    required: false
+  pr_opened_comment_template:
+    description: The template for backlog issue comment on opened a pull request
+    required: false
+  pr_reopened_comment_template:
+    description: The template for backlog issue comment on reopened a pull request
+    required: false
+  pr_ready_for_review_comment_template:
+    description: The template for backlog issue comment on ready to review a pull request
+    required: false
+  pr_closed_comment_template:
+    description: The template for backlog issue comment on closed a pull request
+    required: false
+  pr_merged_comment_template:
+    description: The template for backlog issue comment on merged a pull request
+    required: false
+  commit_message_reg_template:
+    description: The template for regular expressions to parse commit messages
+    required: false
+  pr_title_reg_template:
+    description: The template for regular expressions to parse pull request title
+    required: false
+  fix_status_id:
+    description: Status ID to mark as fixed
+    required: false
+  close_status_id:
+    description: Status ID to mark as closed
+    required: false

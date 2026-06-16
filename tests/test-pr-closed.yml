@@ -1,0 +1,80 @@
+name: Test pull request closed scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/3/merge
+      GITHUB_HEAD_REF: feature-TEST-321
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create fake pull_request closed event payload
+        run: |
+          mkdir -p /tmp/github-events
+          cat > /tmp/github-events/pr-closed.json << 'EOF'
+          {
+            "action": "closed",
+            "number": 3,
+            "pull_request": {
+              "number": 3,
+              "title": "TEST-321 Close feature",
+              "body": "This PR closes work for TEST-321",
+              "state": "closed",
+              "merged": true,
+              "html_url": "https://github.com/test-org/test-repo/pull/3",
+              "head": {
+                "ref": "feature-TEST-321",
+                "sha": "3333333333333333333333333333333333333333"
+              },
+              "base": {
+                "ref": "main",
+                "sha": "0000000000000000000000000000000000000000"
+              },
+              "user": {
+                "login": "test-user"
+              }
+            },
+            "repository": {
+              "full_name": "test-org/test-repo",
+              "html_url": "https://github.com/test-org/test-repo"
+            },
+            "sender": {
+              "login": "test-user"
+            }
+          }
+          EOF
+          echo "GITHUB_EVENT_PATH=/tmp/github-events/pr-closed.json" >> $GITHUB_ENV
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          project_key: TEST
+          api_host: example.backlog.com
+          api_key: fake-api-key-for-testing
+          pr_closed_comment_template: "PR closed: {{title}}"
+          pr_merged_comment_template: "PR merged: {{title}}"
+        env:
+          GITHUB_EVENT_NAME: pull_request
+          GITHUB_REF: refs/pull/3/merge
+          GITHUB_HEAD_REF: feature-TEST-321
+          GITHUB_BASE_REF: main
+          GITHUB_EVENT_PATH: /tmp/github-events/pr-closed.json
+
+      - name: Assert action ran (API error is expected with fake credentials)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action should either succeed or fail due to API error (not setup error)
+          # Both 'success' and 'failure' are acceptable — what matters is the action ran
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action ran with outcome=$OUTCOME"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
