@@ -1,0 +1,26 @@
+name: Test unexpected event (workflow_dispatch)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with workflow_dispatch event (no commits, no PR)
+        id: action
+        # workflow_dispatch has no commits and no pull_request fields,
+        # so the action should complete with "unexpected event" message
+        # without calling the Backlog API at all.
+        uses: .
+        with:
+          project_key: TEST
+          api_host: example.backlog.com
+          api_key: fake-api-key-for-testing
+        # The action should NOT call setFailed for an unexpected event type,
+        # so the step should succeed (exit 0).
+
+      - name: Assert action completed without failure
+        run: |
+          echo "Action completed successfully for unexpected event type"
+          echo "PASS: action handled workflow_dispatch event gracefully"

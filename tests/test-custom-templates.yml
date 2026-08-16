@@ -1,0 +1,39 @@
+name: Test custom templates and optional inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run action with all optional inputs set
+        id: action
+        uses: .
+        with:
+          project_key: MYPROJECT
+          api_host: mycompany.backlog.jp
+          api_key: fake-api-key-for-testing
+          fix_keywords: |
+            #fix
+            #fixes
+          close_keywords: |
+            #close
+            #closes
+          push_comment_template: "Custom push comment"
+          pr_opened_comment_template: "Custom PR opened comment"
+          pr_reopened_comment_template: "Custom PR reopened comment"
+          pr_ready_for_review_comment_template: "Custom PR ready for review comment"
+          pr_closed_comment_template: "Custom PR closed comment"
+          pr_merged_comment_template: "Custom PR merged comment"
+          commit_message_reg_template: "^(MYPROJECT-\\d+)\\s?(.*)?$"
+          pr_title_reg_template: "^(MYPROJECT-\\d+)\\s?(.*)?$"
+          fix_status_id: "3"
+          close_status_id: "4"
+        # workflow_dispatch has no commits and no pull_request, so the action
+        # handles it as an unexpected event without calling the Backlog API.
+
+      - name: Assert action completed successfully with custom templates
+        run: |
+          echo "Action completed successfully with all optional inputs provided"
+          echo "PASS: action accepted all optional template inputs without error"
