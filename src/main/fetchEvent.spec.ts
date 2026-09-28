@@ -1,0 +1,21 @@
+import fs from "node:fs";
+import { fetchEvent } from "./fetchEvent";
+import webhooks from "@octokit/webhooks-examples";
+
+const pushEvents = webhooks.find((v) => v.name === "push")?.examples ?? [];
+
+vi.mock("node:fs");
+const mockedFs = vi.mocked(fs, true);
+
+const path = "event.json";
+const encoding = "utf8";
+
+describe("fetchEvent", () => {
+  test.each(pushEvents)("fetchEvent return parsed event", (pushEvent) => {
+    mockedFs.readFileSync.mockImplementation(() => JSON.stringify(pushEvent));
+
+    expect(fetchEvent({ path })).toStrictEqual({ event: pushEvent });
+    expect(mockedFs.readFileSync).toHaveBeenCalledTimes(1);
+    expect(mockedFs.readFileSync).toHaveBeenCalledWith(path, encoding);
+  });
+});

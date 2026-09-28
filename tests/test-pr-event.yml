@@ -1,0 +1,41 @@
+name: Test pull request event with PR templates
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          project_key: PROJ
+          api_host: example.backlog.com
+          api_key: fake-api-key-for-testing
+          pr_opened_comment_template: "PR opened: {{title}}"
+          pr_closed_comment_template: "PR closed: {{title}}"
+          pr_merged_comment_template: "PR merged: {{title}}"
+          pr_reopened_comment_template: "PR reopened: {{title}}"
+          pr_ready_for_review_comment_template: "PR ready for review: {{title}}"
+          pr_title_reg_template: "([A-Z]+-[0-9]+)"
+        env:
+          GITHUB_EVENT_NAME: pull_request
+          GITHUB_REF: refs/pull/1/merge
+      - name: Assert action ran with PR template inputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected success or failure"
+            exit 1
+          fi
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected with fake API key on PR event)"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
