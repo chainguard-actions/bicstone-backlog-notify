@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v5.1.0 | [`v5.1.0`](https://github.com/chainguard-actions/bicstone-backlog-notify/tree/v5.1.0) | [`aa11a01`](https://github.com/bicstone/backlog-notify/commit/aa11a010318dd58c2d977908560cca3e2d3bcf7a) |
+| v6.1.1 | [`v6.1.1`](https://github.com/chainguard-actions/bicstone-backlog-notify/tree/v6.1.1) | [`bed3fe9`](https://github.com/bicstone/backlog-notify/commit/bed3fe95e306428ee0992a90a1f5bbfc9c9839d2) |
 
 ## Privacy
 
